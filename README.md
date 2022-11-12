@@ -1,17 +1,17 @@
 # Jarkom-Modul-3-ITB10-2022
+| Nama | NRP |
+| --- | --- |
+| Jovan Surya Bako | 5027201013 |
+| Gde Rio Aryaputra Rahadi | 5027201063 |
 
-**Jovan Surya Bako 5027201013**		
+## Topologi GNS3
+![ ](img/0.png)
 
-**Gde Rio Aryaputra Rahadi   5027201063**
-```
-                        gambar topologi
-```
-![Output result](img/0.png)
-## :large_blue_circle: **Soal 1** :large_blue_circle: 
+## Soal 1
 
 Loid bersama Franky berencana membuat peta tersebut dengan kriteria WISE sebagai DNS Server, Westalis sebagai DHCP Server, Berlint sebagai Proxy Server (1)
 
-Konfigurasi router Ostania 
+Konfigurasi Ostania 
 ```
 auto eth0
 iface eth0 inet dhcp
@@ -20,13 +20,12 @@ auto eth1
 iface eth1 inet static
 	address 192.219.1.1
 	netmask 255.255.255.0
-```
+
 auto eth2
 iface eth2 inet static
 	address 192.219.2.1
 	netmask 255.255.255.0
 
-``` 
 auto eth3
 iface eth3 inet static
 	address 192.219.3.1
@@ -60,20 +59,27 @@ iface eth0 inet static
 	gateway 192.219.2.1
 ```
 
-Konfigurasi node-node lain
+Konfigurasi SSS, Garden, NewstonCastle, KemonoPark
 ```
 auto eth0
 iface eth0 inet dhcp
 ```
 
+Konfigurasi Eden
+```
+auto eth0
+iface eth0 inet dhcp
+hwaddress ether 7a:ed:ff:1c:84:b0
+```
+Menjalankan command pada router Ostania
 ```
 iptables -t nat -A POSTROUTING -j MASQUERADE -o eth0 -s 192.219.0.0/16
 ```
-pada router Ostania
+
+Menjalankan command pada pada WISE, Berlint, dan Westalis
 ```
 echo "nameserver 192.168.122.1" > /etc/resolv.conf 
 ```
-pada WISE, Berlint, dan Westalis
 
 Mengupdate package list pada Ostania, WISE, Berlint, dan Westalis
 ```
@@ -91,9 +97,15 @@ Menginstall squid3 pada Berlint
 ```   
 apt-get install squid -y
 ```
-Konfigurasi DHCP dengan membuka file /etc/default/isc-dhcp-server pada Westalis dan menambahkan eth0
+Konfigurasi awal DHCP dengan membuka file /etc/default/isc-dhcp-server pada Westalis dan menambahkan eth0 pada section interface
+![ ](img/1.png)
 
-## :large_blue_circle: **Soal 2** :large_blue_circle: 
+Menambahkan line pada file /etc/dhcp/dhcpd.conf agar relay bisa berjalan melalui switch2 
+```
+subnet 192.219.2.0 netmask 255.255.255.0 {}
+```
+
+## Soal 2
 dan Ostania sebagai DHCP Relay (2)
 
 Menjalankan command pada Ostania 
@@ -101,20 +113,23 @@ Menjalankan command pada Ostania
 apt-get update
 apt-get install isc-dhcp-relay -y 
 ```
-untuk menginstall isc-dhcp-relay, saat menginstall akan muncul beberapa pertanyaan, input IP Westalis (192.219.2.4) dan interfaces eth1 eth2 eth3
+Saat menginstall isc-dhcp-relay akan muncul beberapa pertanyaan pop up, input IP Westalis (192.219.2.4) dan interfaces eth1 eth2 eth3
+![ ](img/2.png)
 
 Kemudian restart service
 ```
 service isc-dhcp-relay restart
 ```
 
+## Soal 3
 Semua client yang ada HARUS menggunakan konfigurasi IP dari DHCP Server.
-## :large_blue_circle: **Soal 3** :large_blue_circle: 
 Client yang melalui Switch1 mendapatkan range IP dari [prefix IP].1.50 - [prefix IP].1.88 dan [prefix IP].1.120 - [prefix IP].1.155 (3)
 
-Agar node-node client mendapatkan IP dari DHCP server maka pada konfigurasi dibuat seperti: 
+Agar node-node client mendapatkan IP dari DHCP server maka buat konfigurasi
+```
 auto eth0
 iface eth0 inet dhcp
+```
 Pada Westalis edit file /etc/dhcp/dhcpd.conf menambahkan subnet .1.0 dengan konfigurasi:
 ```
 subnet 192.219.1.0 netmask 255.255.255.0 {
@@ -129,11 +144,13 @@ subnet 192.219.1.0 netmask 255.255.255.0 {
 ```
 
 Lalu restart service
-service isc-dhcp-server restart\
-\
-hasilnya pada SSS
-![Output result](img/3.png)
-## :large_blue_circle: **Soal 4** :large_blue_circle: 
+```
+service isc-dhcp-server restart
+```
+Hasil pembagian IP otomatis pada node Garden (melalui switch1)
+![ ](img/3n6.png)
+
+## Soal 4
 Client yang melalui Switch3 mendapatkan range IP dari [prefix IP].3.10 - [prefix IP].3.30 dan [prefix IP].3.60 - [prefix IP].3.85 (4)
 
 Pada Westalis edit file /etc/dhcp/dhcpd.conf menambahkan subnet .3.0 dengan konfigurasi:
@@ -149,16 +166,18 @@ Pada Westalis edit file /etc/dhcp/dhcpd.conf menambahkan subnet .3.0 dengan konf
     }
 ```
 Lalu restart service
+```
 service isc-dhcp-server restart 
+```
+Hasil pembagian IP otomatis pada node KemonoPark (melalui switch3)
+![ ](img/4n6.png)
 
-hasil pada newtoncastle
-
-![Output result](img/4.png)
-
-## :large_blue_circle: **Soal 5** :large_blue_circle: 
+## Soal 5
 Client mendapatkan DNS dari WISE dan client dapat terhubung dengan internet melalui DNS tersebut. (5)
 Sudah dikonfigurasi di nomor 3 dan 4 pada line
+```
 option domain-name-servers 192.219.2.2;
+```
 
 Pada WISE set DNS forwarders dan comment dnssec-validation auto; pada file /etc/bind/named.conf.options
 ```
@@ -169,10 +188,20 @@ forwarders {
 };
 
 // dnssec-validation auto;
-```
-Lalu restart service bind9 
+    allow-query { any; };
+    auth-nxdomain no;    # conform to RFC1035
+    listen-on-v6 { any; };
+};
 
-## :large_blue_circle: **Soal 6** :large_blue_circle: 
+```
+Lalu restart service 
+```
+service bind9 restart
+```
+Hasil ping google.com pada salah satu node client (Garden)
+![ ](img/5.png)
+
+## Soal 6
 Lama waktu DHCP server meminjamkan alamat IP kepada Client yang melalui Switch1 selama 5 menit sedangkan pada client yang melalui Switch3 selama 10 menit. Dengan waktu maksimal yang dialokasikan untuk peminjaman alamat IP selama 115 menit. (6)
 Sudah dikonfigurasi di nomor 3 dan 4 pada line
 ```
@@ -185,7 +214,13 @@ subnet 192.219.3.0 …
 default-lease-time 600;
 max-lease-time 6900;
 ```
-## :large_blue_circle: **Soal 7** :large_blue_circle: 
+Lease time pada Garden (melalui switch1)
+![ ](img/3n6.png)
+
+Lease time pada KemonoPark (melalui switch3)
+![ ](img/4n6.png)
+
+## Soal 7 
 Loid dan Franky berencana menjadikan Eden sebagai server untuk pertukaran informasi dengan alamat IP yang tetap dengan IP [prefix IP].3.13 (7)
 Mencari hwaddress_Eden dengan mengeksekusi command ip a di Eden, kemudian mengcopy address pada section link/ether di bagian eth0, yakni 7a:ed:ff:1c:84:b0, terlebih dahulu dimasukkan ke konfigurasi Eden agar tidak berubah saat restart
 ```
@@ -194,17 +229,17 @@ iface eth0 inet dhcp
 hwaddress ether 7a:ed:ff:1c:84:b0
 ```
  
- kemudian dimasukkan pada konfigurasi isc-dhcp-server di Westalis. Dengan command line 
+Kemudian dimasukkan pada konfigurasi isc-dhcp-server di Westalis.
 ```
 host Eden {
         hardware ethernet 7a:ed:ff:1c:84:b0;
         fixed-address 192.219.3.13;
     }
 ```
-setelah itu restart isc-dhcp-server dan juga node Eden
+Lalu restart dhcp service dan restart node Eden
 
-hasil yang didapatkan
-![Output result](img/7.png)    
+Hasil IP Eden
+![ ](img/7.png)  
 
 
 ## :large_blue_circle: **Soal 8-11(1-4)** :large_blue_circle: 
@@ -240,7 +275,8 @@ untuk acl-bandwidth.conf berisikan pembatasan bandwidth untuk client
 delay_pools 1
 delay_class 1 1
 delay_access 1 allow all
-delay_parameters 1 4000/64000
+delay_parameters 1  15100/15100
+delay_access 1 allow HARI_LIBUR
 ```
 
 
@@ -283,6 +319,13 @@ lalu untuk gambar seperti di atas jika loid-work dan franky-work.com dibuka pada
 ## :large_blue_circle: **Soal 10(3)** :large_blue_circle: 
 ![Output result](img/10.1.png)  
 untuk gambar diatas jika mengakses http diluar ataupun didalam jam kerja
+
+## :large_blue_circle: **Soal 11(4)** :large_blue_circle: 
+
+berikut adalah hasil dari tes speed bandwidth pada jam kerja( pada hari senin)
+![Output result](img/11.png)  
+
+## :large_blue_circle: **Soal 12(5)** :large_blue_circle: 
 
 
 
