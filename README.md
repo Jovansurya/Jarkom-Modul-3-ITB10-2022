@@ -274,9 +274,7 @@ untuk acl-bandwidth.conf berisikan pembatasan bandwidth untuk client
 ```
 delay_pools 1
 delay_class 1 1
-delay_access 1 allow all
-delay_parameters 1  15100/15100
-delay_access 1 allow HARI_LIBUR
+delay_parameters 1 16000/16000
 ```
 
 
@@ -326,7 +324,28 @@ berikut adalah hasil dari tes speed bandwidth pada jam kerja( pada hari senin)
 ![Output result](img/11.png)  
 
 ## :large_blue_circle: **Soal 12(5)** :large_blue_circle: 
+![Output result](img/12.png) 
+untuk mendapatkan hasil seperti diatas, kita perlu menambahkan
+```
+delay_access 1 allow !AVAILABLE_WORKING
+```
+pada acl-bandwidth.conf agar hanya akan dibatasi selain hari dan jam kerja saja
 
+selengkapnya ada di bawah ini
+```
+delay_pools 1
+delay_class 1 1
+delay_parameters 1 16000/16000
+delay_access 1 allow !AVAILABLE_WORKING
+```
+![Output result](img/12.1.png) 
+
+
+## :large_blue_circle: **KESULITAN** :large_blue_circle: 
+kesulitan yang ditemui adalah:
+1. kesulitan untuk membatasi penggunaan internet disaat jam kerja(block http(berhasil) dan https(tidak berhasil))
+
+2. kesulitan dalam membatasi bandwidth yang mana hasil yang dimunculkan tidak konsisten
 
 
 
